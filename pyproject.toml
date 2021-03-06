@@ -6,10 +6,10 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-click = "^7.1.2"
 web3 = "^5.17.0"
 python-dotenv = "^0.15.0"
 etcd3 = "^0.12.0"
+typer = "^0.3.2"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
