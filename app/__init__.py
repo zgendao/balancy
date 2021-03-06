@@ -1,4 +1,4 @@
-from . import web3_client  # noqa F401
+from .web3_client import Web3Client  # noqa F401
 
 
 def say_hello():
