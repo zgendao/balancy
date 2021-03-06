@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   etcd:
@@ -7,6 +7,17 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
     volumes:
       - etcd_data:/bitnami/etcd
+    ports:
+      - "2379:2379"
+
+  ganache:
+    build:
+      context: ./ganache-cli
+    environment:
+      - WEB3_FORK_URL=${WEB3_FORK_URL}
+    ports:
+      - "8545:8545"
+
 volumes:
   etcd_data:
     driver: local
