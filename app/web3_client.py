@@ -19,3 +19,11 @@ class Web3Client:
 
     def get_accounts(self) -> Tuple[str]:
         return self.w3.eth.accounts
+
+
+def get_w3(web3_provider_url: Optional[str] = None):
+    if not web3_provider_url:
+        url = config.WEB3_PROVIDER
+    else:
+        url = web3_provider_url
+    return Web3(Web3.HTTPProvider(url))
