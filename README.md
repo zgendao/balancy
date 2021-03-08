@@ -18,8 +18,8 @@ For some functions you will have to pass in a web3 provider url and a database u
 If you have docker installed you can use `docker-compose up` to start an *etcd* database instance and a *ganache* as a web3 test node.
 Example commands with docker-compse running:
 ```console
-python balancy.py addresses --w3url http://127.0.0.1:8545
-python balancy.py db-get 'some key' --db-uri http://127.0.0.1:2379
+python balancy.py api --w3url http://127.0.0.1:8545 --db-uri http://127.0.0.1:2379
+python balancy.py fetch-token --db-uri http://127.0.0.1:2379 --w3url http://127.0.0.1:8545
 ```
 You want to fork a live node with ganache-cli using docker-compose, you can create a `.env` file and specify the node url inside it like this:
 ```
