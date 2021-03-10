@@ -35,6 +35,8 @@ def api(
     os.environ["WEB3_PROVIDER"] = w3url
     os.environ["DB_URI"] = db_uri
 
+    # With this command uvicorn runs the FastAPI instance
+    # named `app` which is located inside app/api.py
     uvicorn.run("app.api:app", port=port, reload=auto_reload)
 
 
