@@ -26,9 +26,18 @@ You want to fork a live node with ganache-cli using docker-compose, you can crea
 WEB3_FORK_URL=<YOUR URL HERE>
 ```
 
+&nbsp;
+## The web api:
+You can run the web api with the cli command below:
+```console
+python balancy.py api -p 8000
+```
+After the web api started up you can check its available endpoints with the generated OpenAPI docs on this link: http://127.0.0.1:8000/docs#/ (if you are running it on localhost port 8000)
+
+&nbsp;
 ## Packages and tools:
-https://typer.tiangolo.com/
-https://github.com/kragniz/python-etcd3
-https://web3py.readthedocs.io/en/stable/
-https://github.com/trufflesuite/ganache-cli
-https://python-poetry.org/
+- https://typer.tiangolo.com/
+- https://github.com/kragniz/python-etcd3
+- https://web3py.readthedocs.io/en/stable/
+- https://github.com/trufflesuite/ganache-cli
+- https://python-poetry.org/

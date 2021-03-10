@@ -1,6 +1,8 @@
+import os
 from typing import Optional
 
 import typer
+import uvicorn
 
 from . import tokens
 from .crud import Crud
@@ -24,11 +26,18 @@ def fetch_tokens(
 
 @app.command()
 def api(
-    w3url: str = typer.Option(...),
-    db_uri: str = typer.Option(...),
+    w3url: str = typer.Option("http://127.0.0.1:8545"),
+    db_uri: str = typer.Option("http://127.0.0.1:2379"),
+    port: int = typer.Option(8000, "--port", "-p"),
+    auto_reload: bool = typer.Option(False, "--auto-reload", "-r"),
 ):
     """Starts the web api."""
-    typer.echo("TODO: implement")
+    os.environ["WEB3_PROVIDER"] = w3url
+    os.environ["DB_URI"] = db_uri
+
+    # With this command uvicorn runs the FastAPI instance
+    # named `app` which is located inside app/api.py
+    uvicorn.run("app.api:app", port=port, reload=auto_reload)
 
 
 @app.command()
