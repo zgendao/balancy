@@ -36,8 +36,8 @@ After the web api started up you can check its available endpoints with the gene
 
 &nbsp;
 ## Packages and tools:
-https://typer.tiangolo.com/  
-https://github.com/kragniz/python-etcd3  
-https://web3py.readthedocs.io/en/stable/  
-https://github.com/trufflesuite/ganache-cli  
-https://python-poetry.org/  
+- https://typer.tiangolo.com/
+- https://github.com/kragniz/python-etcd3
+- https://web3py.readthedocs.io/en/stable/
+- https://github.com/trufflesuite/ganache-cli
+- https://python-poetry.org/
