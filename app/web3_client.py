@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+from urllib.parse import urlparse
 
 from web3 import Web3
 
@@ -26,4 +27,11 @@ def get_w3(web3_provider_url: Optional[str] = None):
         url = config.WEB3_PROVIDER
     else:
         url = web3_provider_url
-    return Web3(Web3.HTTPProvider(url))
+
+    parsed_url = urlparse(url)
+    if parsed_url.scheme in ("ws", "wss"):
+        return Web3(Web3.WebsocketProvider(url))
+    elif parsed_url.scheme in ("http", "https"):
+        return Web3(Web3.HTTPProvider(url))
+    else:
+        raise ValueError("invalid scheme for web3 provider url")
