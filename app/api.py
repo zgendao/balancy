@@ -1,12 +1,10 @@
-import os
-
 from fastapi import FastAPI
 
 from app.crud import Crud
 from app.web3_client import get_w3
 
-w3 = get_w3(os.getenv("WEB3_PROVIDER"))
-crud = Crud(os.getenv("DB_URI"))
+w3 = get_w3()
+crud = Crud()
 
 
 app = FastAPI()

@@ -3,16 +3,12 @@ from urllib.parse import urlparse
 
 from web3 import Web3
 
-from app.config import config
+from app.config import EnvConfig
 
 
 class Web3Client:
-    def __init__(self, web3_provider_url: Optional[str] = None):
-        if not web3_provider_url:
-            url = config.WEB3_PROVIDER
-        else:
-            url = web3_provider_url
-        self.w3 = Web3(Web3.HTTPProvider(url))
+    def __init__(self):
+        self.w3 = get_w3(EnvConfig().WEB3_PROVIDER_URL)
 
     def get_eth_balance(self, account: str) -> float:
         wei = self.w3.eth.getBalance(account)
@@ -24,7 +20,7 @@ class Web3Client:
 
 def get_w3(web3_provider_url: Optional[str] = None):
     if not web3_provider_url:
-        url = config.WEB3_PROVIDER
+        url = EnvConfig().WEB3_PROVIDER_URL
     else:
         url = web3_provider_url
 
