@@ -1,3 +1,4 @@
+import atexit
 from typing import Optional
 
 import typer
@@ -21,8 +22,13 @@ def fetch_tokens(
     EnvConfig.set_environment(w3url, db_uri)
     w3 = get_w3()
     crud = Crud()
+    _setup_is_fetch_status(crud)
     tokens.query_ERC20_tokens(w3=w3, crud=crud)
-    typer.echo("TODO: implement")
+
+
+def _setup_is_fetch_status(crud: Crud):
+    crud.set_is_block_fetch(True)
+    atexit.register(crud.set_is_block_fetch, False)
 
 
 @app.command()
