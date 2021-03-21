@@ -1,9 +1,16 @@
-from typing import Any
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 import etcd3
+from hexbytes import HexBytes
 
 from app.config import EnvConfig
+
+KEY_LAST_BLOCK = "last_block"
+KEY_EARLIEST_BLOCK = "earliest_block"
+KEY_BLOCK_FETCH = "block_fetch"
+
+PREFIX_TOKEN_ADDRESS = "token"
 
 
 class Crud:
@@ -14,10 +21,34 @@ class Crud:
         self.db = etcd3.client(host=db_host, port=db_port)
 
     def get(self, key: str) -> Any:
-        return self.db.get(key)
+        return self.db.get(key)[0]
 
     def put(self, key: str, value: Any) -> None:
         self.db.put(key, value)
 
     def delete(self, key: str) -> None:
         self.db.delete(key)
+
+    def get_is_block_fetch(self) -> bool:
+        return self.db.get(KEY_BLOCK_FETCH)[0] == "1"
+
+    def set_is_block_fetch(self, is_fetch: bool) -> None:
+        fetch_status = "1" if is_fetch else "0"
+        return self.db.put(KEY_BLOCK_FETCH, fetch_status)
+
+    def save_as_last_block(self, block_address: HexBytes) -> None:
+        self.db.put(KEY_LAST_BLOCK, block_address)
+
+    def save_as_earliest_block(self, block_address: HexBytes) -> None:
+        self.db.put(KEY_EARLIEST_BLOCK, block_address)
+
+    def get_last_block_address(self) -> Optional[HexBytes]:
+        address = self.db.get(KEY_LAST_BLOCK)[0]
+        return HexBytes(address) if address else None
+
+    def get_earliest_block_address(self) -> Optional[HexBytes]:
+        address = self.db.get(KEY_EARLIEST_BLOCK)[0]
+        return HexBytes(address) if address else None
+
+    def save_token_address(self, token_address: str, address: str) -> None:
+        return self.db.put(f"{PREFIX_TOKEN_ADDRESS}::token_address")

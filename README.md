@@ -12,7 +12,7 @@ Query balances for certain accounts and more on Ethereum.
     - The last checked block's number will be saved and next time we can continue from that block to look for new ERC-20 contracts.
     - It also checks when was the last activity on that contract. Based on that it sets the status for active or inactive.
     - This tool can be a cronjob running periodically.
-- Address balance query. It accepts an Ethereum address and checks the balance for all active ERC-20 contracts stored in the registry. 
+- Address balance query. It accepts an Ethereum address and checks the balance for all active ERC-20 contracts stored in the registry.
     - It will return a session ID because that will take time and the client can ask the status or subscribe on websockets to get notified.
     - This tool can be an API-like solution.
 
