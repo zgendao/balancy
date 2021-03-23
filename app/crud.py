@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 from urllib.parse import urlparse
 
 import etcd3
@@ -52,3 +52,7 @@ class Crud:
 
     def save_token_address(self, token_address: str, address: str) -> None:
         return self.db.put(f"{PREFIX_TOKEN_ADDRESS}::token_address")
+
+    def get_token_addresses(self) -> List[str]:
+        res = self.db.get_prefix(PREFIX_TOKEN_ADDRESS)
+        return [token.decode("utf-8") for (token, _) in res]
