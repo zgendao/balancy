@@ -50,8 +50,8 @@ class Crud:
         address = self.db.get(KEY_EARLIEST_BLOCK)[0]
         return HexBytes(address) if address else None
 
-    def save_token_address(self, token_address: str, address: str) -> None:
-        return self.db.put(f"{PREFIX_TOKEN_ADDRESS}::token_address")
+    def save_token_address(self, token_address: str) -> None:
+        return self.db.put(f"{PREFIX_TOKEN_ADDRESS}::{token_address}", token_address)
 
     def get_token_addresses(self) -> List[str]:
         res = self.db.get_prefix(PREFIX_TOKEN_ADDRESS)
