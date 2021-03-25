@@ -1,4 +1,5 @@
-from typing import Any, List, Optional
+import json
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import etcd3
@@ -11,6 +12,7 @@ KEY_EARLIEST_BLOCK = "earliest_block"
 KEY_BLOCK_FETCH = "block_fetch"
 
 PREFIX_TOKEN_ADDRESS = "token"
+PREFIX_ADDRESS_BALANCES = "balances"
 
 
 class Crud:
@@ -56,3 +58,6 @@ class Crud:
     def get_token_addresses(self) -> List[str]:
         res = self.db.get_prefix(PREFIX_TOKEN_ADDRESS)
         return [token.decode("utf-8") for (token, _) in res]
+
+    def save_address_balances(self, address: str, balances: Dict) -> None:
+        self.db.put(f"{PREFIX_ADDRESS_BALANCES}::{address}", json.dumps(balances))

@@ -18,20 +18,22 @@ ABI_FOR_BALANCE_OF = [
 ]
 
 
-# TODO save stuff to db
 def fetch_address_token_balances(address: str, *, w3: Web3, crud: Crud) -> Dict:
-    token_addresses = crud.get_token_addresses()
     session_obj = {
         "address": address,
         "started_at": datetime.datetime.utcnow().timestamp(),
         "processing": True,
     }
+    crud.save_address_balances(address, session_obj)
 
+    token_addresses = crud.get_token_addresses()
     for token_addr in token_addresses:
         balance = balance_of_address(address, token_addr, w3=w3)
         session_obj.update({token_addr: balance})
+        crud.save_address_balances(address, session_obj)
 
     session_obj["processing"] = False
+    crud.save_address_balances(address, session_obj)
     return session_obj
 
 
