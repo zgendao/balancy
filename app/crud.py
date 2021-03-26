@@ -61,3 +61,10 @@ class Crud:
 
     def save_address_balances(self, address: str, balances: Dict) -> None:
         self.db.put(f"{PREFIX_ADDRESS_BALANCES}::{address}", json.dumps(balances))
+
+    def get_address_balances(self, address: str) -> Optional[Dict]:
+        res = self.db.get(f"{PREFIX_ADDRESS_BALANCES}::{address}")[0]
+        try:
+            return json.loads(res)
+        except (json.JSONDecodeError, TypeError):
+            return None
