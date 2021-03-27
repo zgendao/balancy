@@ -101,7 +101,7 @@ def _save_if_erc20_token(w3: Web3, crud: Crud, transaction_hash: HexBytes) -> No
         return
     address = _get_contract_address(w3, transaction_hash)
     if is_contract_erc20_complient(w3, address):
-        crud.save_token_address(address, address)
+        crud.save_token_address(address)
 
 
 def _is_contract_creation(w3, transaction_hash: HexBytes) -> bool:
