@@ -1,23 +1,154 @@
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
+from eth_tester.exceptions import TransactionFailed
+from hexbytes import HexBytes
 from web3 import Web3
+from web3.contract import Contract
+from web3.exceptions import (
+    BadFunctionCallOutput,
+    BlockNotFound,
+    InvalidAddress,
+    TransactionNotFound,
+)
+from web3.types import BlockData, ChecksumAddress, TxData
 
 from app.config import EnvConfig
 
+ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+ABI_FUNC_ALLOWANCE = {
+    "constant": True,
+    "inputs": [
+        {"name": "_owner", "type": "address"},
+        {"name": "_spender", "type": "address"},
+    ],
+    "name": "allowance",
+    "outputs": [{"name": "remaining", "type": "uint256"}],
+    "payable": False,
+    "stateMutability": "view",
+    "type": "function",
+}
+
+ABI_FUNC_BALANCE_OF = {
+    "constant": True,
+    "inputs": [{"name": "who", "type": "address"}],
+    "name": "balanceOf",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "payable": False,
+    "stateMutability": "view",
+    "type": "function",
+}
+
+ABI_FUNC_TOTAL_SUPPLY = {
+    "constant": True,
+    "inputs": [],
+    "name": "totalSupply",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "payable": False,
+    "stateMutability": "view",
+    "type": "function",
+}
+
+ERC20_ABI_VIEWS = [ABI_FUNC_ALLOWANCE, ABI_FUNC_BALANCE_OF, ABI_FUNC_TOTAL_SUPPLY]
+
+
+class NotFoundException(Exception):
+    pass
+
+
+class ContractNotERC20(Exception):
+    pass
+
 
 class Web3Client:
-    def __init__(self):
-        self.w3 = get_w3(EnvConfig().WEB3_PROVIDER_URL)
+    def __init__(self, w3: Optional[Web3] = None):
+        if w3:
+            self.w3 = w3
+        else:
+            self.w3 = get_w3(EnvConfig().WEB3_PROVIDER_URL)
 
+    # TODO delete
     def get_eth_balance(self, account: str) -> float:
         wei = self.w3.eth.getBalance(account)
         return self.w3.fromWei(wei, "ether")
 
+    # TODO delete
     def get_accounts(self) -> Tuple[str]:
         return self.w3.eth.accounts
 
+    def get_block_by_hash(self, hash: Union[str, HexBytes]) -> BlockData:
+        try:
+            return self.w3.eth.get_block(hash)
+        except (ValueError, BlockNotFound):
+            raise NotFoundException
 
+    def get_latest_block(self) -> BlockData:
+        return self.w3.eth.get_block("latest")
+
+    def get_parent_block(self, block: BlockData) -> Optional[BlockData]:
+        parent_hash = block["parentHash"]
+        if parent_hash.hex() == ZERO_HASH:
+            return None
+        return self.w3.eth.get_block(parent_hash)
+
+    def get_transaction_by_hash(self, hash: Union[str, HexBytes]) -> TxData:
+        try:
+            return self.w3.eth.get_transaction(hash)
+        except (ValueError, TransactionNotFound):
+            raise NotFoundException
+
+    def is_transaction_contract_creation(
+        self, transaction_hash: Union[str, HexBytes]
+    ) -> bool:
+        transaction = self.get_transaction_by_hash(transaction_hash)
+        return transaction["to"] is None
+
+    def get_contract_address_by_transaction_hash(
+        self, hash: Union[str, HexBytes]
+    ) -> ChecksumAddress:
+        try:
+            receipt = self.w3.eth.getTransactionReceipt(hash)
+        except (ValueError, TransactionNotFound):
+            raise NotFoundException
+        contract_address = receipt["contractAddress"]
+        if not contract_address:
+            raise NotFoundException
+        return contract_address
+
+    def get_contract(self, address: ChecksumAddress, abi: List[Dict]) -> Contract:
+        try:
+            return self.w3.eth.contract(address=address, abi=abi)
+        except (InvalidAddress, BadFunctionCallOutput):
+            raise NotFoundException
+
+    def is_contract_erc20(self, contract_address: ChecksumAddress) -> bool:
+        try:
+            contract = self.get_contract(contract_address, ERC20_ABI_VIEWS)
+        except NotFoundException:
+            return False
+        try:
+            test_addr = contract_address
+            contract.functions.totalSupply().call()
+            contract.functions.balanceOf(test_addr).call()
+            contract.functions.allowance(test_addr, test_addr).call()
+        except (TransactionFailed, BadFunctionCallOutput):
+            return False
+        return True
+
+    def get_eoa_token_balance(self, eoa_address: str, token_address: str) -> int:
+        eoa_checksum_addr = self.w3.toChecksumAddress(eoa_address)
+        token_checksum_addr = self.w3.toChecksumAddress(token_address)
+
+        contract = self.get_contract(token_checksum_addr, [ABI_FUNC_BALANCE_OF])
+        try:
+            res = contract.functions.balanceOf(eoa_checksum_addr).call()
+        except TransactionFailed:
+            raise ContractNotERC20
+        return res
+
+
+# TODO make private
 def get_w3(web3_provider_url: Optional[str] = None):
     if not web3_provider_url:
         url = EnvConfig().WEB3_PROVIDER_URL
