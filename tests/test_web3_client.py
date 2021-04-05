@@ -7,7 +7,7 @@ from app.web3_client import (
     ContractNotERC20,
     NotFoundException,
     Web3Client,
-    get_w3,
+    _get_w3,
 )
 
 from . import utils
@@ -90,14 +90,14 @@ def get_test_eoa(eth_tester):
     ],
 )
 def test_get_w3(url, expected_provider):
-    w3 = get_w3(url)
+    w3 = _get_w3(url)
     assert isinstance(w3.provider, expected_provider)
 
 
 def test_get_w3_invalid_url_scheme():
     invalid_scheme_url = "asd://127.0.0.1:8545"
     with pytest.raises(ValueError):
-        get_w3(invalid_scheme_url)
+        _get_w3(invalid_scheme_url)
 
 
 class TestWeb3Client:

@@ -66,7 +66,7 @@ class Web3Client:
         if w3:
             self.w3 = w3
         else:
-            self.w3 = get_w3(EnvConfig().WEB3_PROVIDER_URL)
+            self.w3 = _get_w3(EnvConfig().WEB3_PROVIDER_URL)
 
     # TODO delete
     def get_eth_balance(self, account: str) -> float:
@@ -148,8 +148,7 @@ class Web3Client:
         return res
 
 
-# TODO make private
-def get_w3(web3_provider_url: Optional[str] = None):
+def _get_w3(web3_provider_url: Optional[str] = None):
     if not web3_provider_url:
         url = EnvConfig().WEB3_PROVIDER_URL
     else:
