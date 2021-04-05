@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 from eth_tester.exceptions import TransactionFailed
@@ -67,15 +67,6 @@ class Web3Client:
             self.w3 = w3
         else:
             self.w3 = _get_w3(EnvConfig().WEB3_PROVIDER_URL)
-
-    # TODO delete
-    def get_eth_balance(self, account: str) -> float:
-        wei = self.w3.eth.getBalance(account)
-        return self.w3.fromWei(wei, "ether")
-
-    # TODO delete
-    def get_accounts(self) -> Tuple[str]:
-        return self.w3.eth.accounts
 
     def get_block_by_hash(self, hash: Union[str, HexBytes]) -> BlockData:
         try:
