@@ -9,23 +9,34 @@ from app.web3_client import Web3Client
 
 
 def query_ERC20_tokens(*, w3: Web3Client, crud: Crud) -> None:
-    block = _get_starting_block(w3, crud)
-    while block:
+    block = _get_first_block(w3, crud)
+    crud.set_is_block_fetch(True)
+    last_block_hash = crud.get_last_block_hash()
+    while block and block["hash"] != last_block_hash:
+        crud.set_current_block(block["hash"])
         transactions: Sequence[HexBytes] = block["transactions"]  # type: ignore
         _find_contract_creations(transactions)
-        crud.set_start_block(block["hash"])
         block = w3.get_parent_block(block)
+    _finish_process(crud)
 
 
-def _get_starting_block(w3: Web3Client, crud: Crud) -> Optional[BlockData]:
-    earliest_queried_block_hash = crud.get_start_block_hash()
-    if not earliest_queried_block_hash:
+def _get_first_block(w3: Web3Client, crud: Crud) -> Optional[BlockData]:
+    start_block_hash = crud.get_start_block_hash()
+    if not start_block_hash:
         block = w3.get_latest_block()
-        crud.set_last_block(block["hash"])
+        crud.set_start_block(block["hash"])
         return block
     else:
-        earliest_block = w3.get_block_by_hash(earliest_queried_block_hash)
-        return w3.get_parent_block(earliest_block)
+        current_block_hash = crud.get_current_block_hash()
+        assert current_block_hash is not None
+        return w3.get_block_by_hash(current_block_hash)
+
+
+def _finish_process(crud: Crud) -> None:
+    crud.set_last_block(crud.get_start_block_hash())
+    crud.set_current_block(None)
+    crud.set_start_block(None)
+    crud.set_is_block_fetch(False)
 
 
 def _find_contract_creations(transactions: Sequence[HexBytes]) -> None:

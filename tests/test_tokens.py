@@ -16,43 +16,45 @@ def crud():
     return mock.MagicMock()
 
 
-@mock.patch("app.tokens._get_starting_block")
+@mock.patch("app.tokens._get_first_block")
 @mock.patch("app.tokens._find_contract_creations")
-def test_query_ERC20_tokens(find_contract_creations, get_starting_block, w3, crud):
-    starting_block = {"hash": HexBytes("1234"), "transactions": []}
-    get_starting_block.return_value = starting_block
+@mock.patch("app.tokens._finish_process")
+def test_query_ERC20_tokens(
+    _finish_process, _find_contract_creations, _get_first_block, w3, crud
+):
+    first_block = {"hash": HexBytes("1234"), "transactions": []}
+    _get_first_block.return_value = first_block
+    crud.get_last_block_hash.return_value = None
     w3.get_parent_block.return_value = None
 
     tokens.query_ERC20_tokens(w3=w3, crud=crud)
-    find_contract_creations.assert_called_once_with(starting_block["transactions"])
-    crud.save_as_earliest_block.assert_called_once_with(starting_block["hash"])
-    w3.get_parent_block.assert_called_once_with(starting_block)
+    _find_contract_creations.assert_called_once_with(first_block["transactions"])
+    crud.set_current_block.assert_called_once_with(first_block["hash"])
+    w3.get_parent_block.assert_called_once_with(first_block)
+    _finish_process.assert_called_once()
 
 
-def test_get_starting_block_no_earliest_block(w3, crud):
-    crud.get_earliest_block_address.return_value = None
+def test_get_first_block_no_start_block(w3, crud):
+    crud.get_start_block_hash.return_value = None
     expected_block = {"hash": "1234"}
     w3.get_latest_block.return_value = expected_block
 
-    result_block = tokens._get_starting_block(w3, crud)
+    result_block = tokens._get_first_block(w3, crud)
     assert result_block == expected_block
-    crud.save_as_last_block.assert_called_once_with(expected_block["hash"])
+    crud.set_start_block.assert_called_once_with(expected_block["hash"])
 
 
-def test_get_starting_block_has_earliest_block(w3, crud):
-    earliest_block_hash = HexBytes("1234")
-    crud.get_earliest_block_address.return_value = earliest_block_hash
+def test_get_first_block_has_start_block(w3, crud):
+    current_block_hash = HexBytes("1234")
+    crud.get_start_block_hash.return_value = current_block_hash
+    crud.get_current_block_hash.return_value = current_block_hash
 
-    earliest_block = {"hash": "5678"}
-    w3.get_block_by_hash.return_value = earliest_block
+    expected_block = {"hash": "5678"}
+    w3.get_block_by_hash.return_value = expected_block
 
-    expected_block = {"hash": "9012"}
-    w3.get_parent_block.return_value = expected_block
-
-    result_block = tokens._get_starting_block(w3, crud)
+    result_block = tokens._get_first_block(w3, crud)
     assert result_block == expected_block
-    w3.get_block_by_hash.assert_called_once_with(earliest_block_hash)
-    w3.get_parent_block.assert_called_once_with(earliest_block)
+    w3.get_block_by_hash.assert_called_once_with(current_block_hash)
 
 
 @mock.patch("app.tokens._save_if_erc20_token")
