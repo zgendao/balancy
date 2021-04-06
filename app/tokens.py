@@ -13,15 +13,15 @@ def query_ERC20_tokens(*, w3: Web3Client, crud: Crud) -> None:
     while block:
         transactions: Sequence[HexBytes] = block["transactions"]  # type: ignore
         _find_contract_creations(transactions)
-        crud.save_as_earliest_block(block["hash"])
+        crud.set_start_block(block["hash"])
         block = w3.get_parent_block(block)
 
 
 def _get_starting_block(w3: Web3Client, crud: Crud) -> Optional[BlockData]:
-    earliest_queried_block_hash = crud.get_earliest_block_address()
+    earliest_queried_block_hash = crud.get_start_block_hash()
     if not earliest_queried_block_hash:
         block = w3.get_latest_block()
-        crud.save_as_last_block(block["hash"])
+        crud.set_last_block(block["hash"])
         return block
     else:
         earliest_block = w3.get_block_by_hash(earliest_queried_block_hash)

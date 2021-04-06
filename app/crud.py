@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
 import etcd3
@@ -8,7 +8,8 @@ from hexbytes import HexBytes
 from app.config import EnvConfig
 
 KEY_LAST_BLOCK = "last_block"
-KEY_EARLIEST_BLOCK = "earliest_block"
+KEY_START_BLOCK = "start_block"
+KEY_CURRENT_BLOCK = "current_block"
 KEY_BLOCK_FETCH = "block_fetch"
 
 PREFIX_TOKEN_ADDRESS = "token"
@@ -22,15 +23,6 @@ class Crud:
         db_port = str(parsed_uri.port)
         self.db = etcd3.client(host=db_host, port=db_port)
 
-    def get(self, key: str) -> Any:
-        return self.db.get(key)[0]
-
-    def put(self, key: str, value: Any) -> None:
-        self.db.put(key, value)
-
-    def delete(self, key: str) -> None:
-        self.db.delete(key)
-
     def get_is_block_fetch(self) -> bool:
         return self.db.get(KEY_BLOCK_FETCH)[0] == "1"
 
@@ -38,19 +30,23 @@ class Crud:
         fetch_status = "1" if is_fetch else "0"
         return self.db.put(KEY_BLOCK_FETCH, fetch_status)
 
-    def save_as_last_block(self, block_address: HexBytes) -> None:
-        self.db.put(KEY_LAST_BLOCK, block_address)
+    def set_start_block(self, block_hash: Optional[HexBytes]) -> None:
+        self._set_block(KEY_START_BLOCK, block_hash)
 
-    def save_as_earliest_block(self, block_address: HexBytes) -> None:
-        self.db.put(KEY_EARLIEST_BLOCK, block_address)
+    def set_current_block(self, block_hash: Optional[HexBytes]) -> None:
+        self._set_block(KEY_CURRENT_BLOCK, block_hash)
 
-    def get_last_block_address(self) -> Optional[HexBytes]:
-        address = self.db.get(KEY_LAST_BLOCK)[0]
-        return HexBytes(address) if address else None
+    def set_last_block(self, block_hash: Optional[HexBytes]) -> None:
+        self._set_block(KEY_LAST_BLOCK, block_hash)
 
-    def get_earliest_block_address(self) -> Optional[HexBytes]:
-        address = self.db.get(KEY_EARLIEST_BLOCK)[0]
-        return HexBytes(address) if address else None
+    def get_start_block_hash(self) -> Optional[HexBytes]:
+        return self._get_block_hash(KEY_START_BLOCK)
+
+    def get_current_block_hash(self) -> Optional[HexBytes]:
+        return self._get_block_hash(KEY_CURRENT_BLOCK)
+
+    def get_last_block_hash(self) -> Optional[HexBytes]:
+        return self._get_block_hash(KEY_LAST_BLOCK)
 
     def save_token_address(self, token_address: str) -> None:
         return self.db.put(f"{PREFIX_TOKEN_ADDRESS}::{token_address}", token_address)
@@ -68,3 +64,13 @@ class Crud:
             return json.loads(res)
         except (json.JSONDecodeError, TypeError):
             return None
+
+    def _set_block(self, key: str, block_hash: Optional[HexBytes]) -> None:
+        if block_hash:
+            self.db.put(key, block_hash)
+        else:
+            self.db.delete(key)
+
+    def _get_block_hash(self, key: str) -> Optional[HexBytes]:
+        address = self.db.get(key)[0]
+        return HexBytes(address) if address else None
