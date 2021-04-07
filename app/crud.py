@@ -67,10 +67,10 @@ class Crud:
 
     def _set_block(self, key: str, block_hash: Optional[HexBytes]) -> None:
         if block_hash:
-            self.db.put(key, block_hash)
+            self.db.put(key, block_hash.hex())
         else:
             self.db.delete(key)
 
     def _get_block_hash(self, key: str) -> Optional[HexBytes]:
         address = self.db.get(key)[0]
-        return HexBytes(address) if address else None
+        return HexBytes(address.decode("utf-8")) if address else None

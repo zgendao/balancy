@@ -15,7 +15,7 @@ def query_ERC20_tokens(*, w3: Web3Client, crud: Crud) -> None:
     while block and block["hash"] != last_block_hash:
         crud.set_current_block(block["hash"])
         transactions: Sequence[HexBytes] = block["transactions"]  # type: ignore
-        _find_contract_creations(transactions)
+        _find_contract_creations(w3, crud, transactions)
         block = w3.get_parent_block(block)
     _finish_process(crud)
 
@@ -39,12 +39,15 @@ def _finish_process(crud: Crud) -> None:
     crud.set_is_block_fetch(False)
 
 
-def _find_contract_creations(transactions: Sequence[HexBytes]) -> None:
+def _find_contract_creations(
+    w3: Web3Client, crud: Crud, transactions: Sequence[HexBytes]
+) -> None:
     if len(transactions) < 1:
         return
     workers = len(transactions)
     with futures.ThreadPoolExecutor(workers) as executor:
-        _ = executor.map(_save_if_erc20_token, transactions)
+        args = ((w3, crud, t) for t in transactions)
+        _ = executor.map(lambda p: _save_if_erc20_token(*p), args)
 
 
 def _save_if_erc20_token(

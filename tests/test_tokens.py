@@ -22,13 +22,15 @@ def crud():
 def test_query_ERC20_tokens(
     _finish_process, _find_contract_creations, _get_first_block, w3, crud
 ):
-    first_block = {"hash": HexBytes("1234"), "transactions": []}
+    first_block = {"hash": "0x1234", "transactions": []}
     _get_first_block.return_value = first_block
     crud.get_last_block_hash.return_value = None
     w3.get_parent_block.return_value = None
 
     tokens.query_ERC20_tokens(w3=w3, crud=crud)
-    _find_contract_creations.assert_called_once_with(first_block["transactions"])
+    _find_contract_creations.assert_called_once_with(
+        w3, crud, first_block["transactions"]
+    )
     crud.set_current_block.assert_called_once_with(first_block["hash"])
     w3.get_parent_block.assert_called_once_with(first_block)
     _finish_process.assert_called_once()
@@ -45,7 +47,7 @@ def test_get_first_block_no_start_block(w3, crud):
 
 
 def test_get_first_block_has_start_block(w3, crud):
-    current_block_hash = HexBytes("1234")
+    current_block_hash = "1234"
     crud.get_start_block_hash.return_value = current_block_hash
     crud.get_current_block_hash.return_value = current_block_hash
 
@@ -62,13 +64,13 @@ def test_find_contract_creations(save_if_erc20, w3, crud):
     num_of_transactions = 42
     transactions = [HexBytes(i) for i in range(num_of_transactions)]
 
-    tokens._find_contract_creations(transactions)
+    tokens._find_contract_creations(w3, crud, transactions)
     assert save_if_erc20.call_count == num_of_transactions
 
 
 @mock.patch("app.tokens._save_if_erc20_token")
 def test_find_contract_creations_empty_list(save_if_erc20, w3, crud):
-    tokens._find_contract_creations([])
+    tokens._find_contract_creations(w3, crud, [])
     assert not save_if_erc20.called
 
 
