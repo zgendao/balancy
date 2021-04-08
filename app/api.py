@@ -2,9 +2,9 @@ from fastapi import BackgroundTasks, FastAPI, Response, status
 
 from app import balances
 from app.crud import Crud
-from app.web3_client import get_w3
+from app.web3_client import Web3Client
 
-w3 = get_w3()
+w3 = Web3Client()
 crud = Crud()
 
 
