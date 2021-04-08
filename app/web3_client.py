@@ -68,20 +68,24 @@ class Web3Client:
         else:
             self.w3 = _get_w3(EnvConfig().WEB3_PROVIDER_URL)
 
-    def get_block_by_hash(self, hash: Union[str, HexBytes]) -> BlockData:
+    def get_block_by_hash(
+        self, hash: Union[str, HexBytes], full_transactions: bool = False
+    ) -> BlockData:
         try:
-            return self.w3.eth.get_block(hash)
+            return self.w3.eth.get_block(hash, full_transactions=full_transactions)
         except (ValueError, BlockNotFound):
             raise NotFoundException
 
-    def get_latest_block(self) -> BlockData:
-        return self.w3.eth.get_block("latest")
+    def get_latest_block(self, full_transactions: bool = False) -> BlockData:
+        return self.w3.eth.get_block("latest", full_transactions=full_transactions)
 
-    def get_parent_block(self, block: BlockData) -> Optional[BlockData]:
+    def get_parent_block(
+        self, block: BlockData, full_transactions: bool = False
+    ) -> Optional[BlockData]:
         parent_hash = block["parentHash"]
         if parent_hash.hex() == ZERO_HASH:
             return None
-        return self.w3.eth.get_block(parent_hash)
+        return self.w3.eth.get_block(parent_hash, full_transactions=full_transactions)
 
     def get_transaction_by_hash(self, hash: Union[str, HexBytes]) -> TxData:
         try:
