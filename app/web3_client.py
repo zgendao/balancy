@@ -8,6 +8,7 @@ from web3.contract import Contract
 from web3.exceptions import (
     BadFunctionCallOutput,
     BlockNotFound,
+    ContractLogicError,
     InvalidAddress,
     TransactionNotFound,
 )
@@ -127,7 +128,7 @@ class Web3Client:
             contract.functions.totalSupply().call()
             contract.functions.balanceOf(test_addr).call()
             contract.functions.allowance(test_addr, test_addr).call()
-        except (TransactionFailed, BadFunctionCallOutput):
+        except (TransactionFailed, BadFunctionCallOutput, ContractLogicError):
             return False
         return True
 

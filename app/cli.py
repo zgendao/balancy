@@ -4,7 +4,7 @@ from typing import Optional
 import typer
 import uvicorn
 
-from . import tokens
+from . import tokens_v2
 from .config import EnvConfig
 from .crud import Crud
 from .web3_client import Web3Client
@@ -23,7 +23,7 @@ def fetch_tokens(
     w3 = Web3Client()
     crud = Crud()
     _setup_is_fetch_status(crud)
-    tokens.query_ERC20_tokens(w3=w3, crud=crud)
+    tokens_v2.query_ERC20_tokens(w3=w3, crud=crud)
 
 
 def _setup_is_fetch_status(crud: Crud):
