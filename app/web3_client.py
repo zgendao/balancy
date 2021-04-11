@@ -94,10 +94,7 @@ class Web3Client:
         except (ValueError, TransactionNotFound):
             raise NotFoundException
 
-    def is_transaction_contract_creation(
-        self, transaction_hash: Union[str, HexBytes]
-    ) -> bool:
-        transaction = self.get_transaction_by_hash(transaction_hash)
+    def is_transaction_contract_creation(self, transaction: TxData) -> bool:
         return transaction["to"] is None
 
     def get_contract_address_by_transaction_hash(
