@@ -8,6 +8,7 @@ from web3.contract import Contract
 from web3.exceptions import (
     BadFunctionCallOutput,
     BlockNotFound,
+    ContractLogicError,
     InvalidAddress,
     TransactionNotFound,
 )
@@ -68,20 +69,24 @@ class Web3Client:
         else:
             self.w3 = _get_w3(EnvConfig().WEB3_PROVIDER_URL)
 
-    def get_block_by_hash(self, hash: Union[str, HexBytes]) -> BlockData:
+    def get_block_by_hash(
+        self, hash: Union[str, HexBytes], full_transactions: bool = False
+    ) -> BlockData:
         try:
-            return self.w3.eth.get_block(hash)
+            return self.w3.eth.get_block(hash, full_transactions=full_transactions)
         except (ValueError, BlockNotFound):
             raise NotFoundException
 
-    def get_latest_block(self) -> BlockData:
-        return self.w3.eth.get_block("latest")
+    def get_latest_block(self, full_transactions: bool = False) -> BlockData:
+        return self.w3.eth.get_block("latest", full_transactions=full_transactions)
 
-    def get_parent_block(self, block: BlockData) -> Optional[BlockData]:
+    def get_parent_block(
+        self, block: BlockData, full_transactions: bool = False
+    ) -> Optional[BlockData]:
         parent_hash = block["parentHash"]
         if parent_hash.hex() == ZERO_HASH:
             return None
-        return self.w3.eth.get_block(parent_hash)
+        return self.w3.eth.get_block(parent_hash, full_transactions=full_transactions)
 
     def get_transaction_by_hash(self, hash: Union[str, HexBytes]) -> TxData:
         try:
@@ -89,10 +94,7 @@ class Web3Client:
         except (ValueError, TransactionNotFound):
             raise NotFoundException
 
-    def is_transaction_contract_creation(
-        self, transaction_hash: Union[str, HexBytes]
-    ) -> bool:
-        transaction = self.get_transaction_by_hash(transaction_hash)
+    def is_transaction_contract_creation(self, transaction: TxData) -> bool:
         return transaction["to"] is None
 
     def get_contract_address_by_transaction_hash(
@@ -123,7 +125,7 @@ class Web3Client:
             contract.functions.totalSupply().call()
             contract.functions.balanceOf(test_addr).call()
             contract.functions.allowance(test_addr, test_addr).call()
-        except (TransactionFailed, BadFunctionCallOutput):
+        except (TransactionFailed, BadFunctionCallOutput, ContractLogicError):
             return False
         return True
 

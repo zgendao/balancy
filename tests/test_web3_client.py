@@ -55,6 +55,12 @@ def erc20_contract(test_w3, create_erc20_contract):
 
 
 @pytest.fixture
+def erc20_contract_transaction(test_w3, create_erc20_contract):
+    tx_hash, _ = create_erc20_contract
+    return test_w3.eth.get_transaction(tx_hash)
+
+
+@pytest.fixture
 def not_erc20_contract(test_w3, create_not_erc20_contract):
     _, contract_address = create_erc20_contract
     return test_w3.eth.contract(address=contract_address, abi=ERC20_ABI_VIEWS)
@@ -141,16 +147,15 @@ class TestWeb3Client:
             web3_client.get_transaction_by_hash("asd")
 
     def test_is_transaction_contract_creation_true(
-        self, web3_client, test_w3, create_erc20_contract
+        self, web3_client, test_w3, erc20_contract_transaction
     ):
-        transaction_hash, _ = create_erc20_contract
-        assert web3_client.is_transaction_contract_creation(transaction_hash) is True
+        res = web3_client.is_transaction_contract_creation(erc20_contract_transaction)
+        assert res is True
 
     def test_is_transaction_contract_creation_false(
         self, web3_client, test_transaction
     ):
-        hash = test_transaction["hash"]
-        res = web3_client.is_transaction_contract_creation(hash)
+        res = web3_client.is_transaction_contract_creation(test_transaction)
         assert res is False
 
     def test_get_contract_address_by_transaction_hash(
