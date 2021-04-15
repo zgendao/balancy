@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-ENV_WEB3_PROVIDER = "WEB3_PROVIDER"
-ENV_STR_DB_URI = "DB_URI"
+ENV_WEB3_PROVIDER = "WEB3_PROVIDER_URL"
+ENV_DB_URI = "DB_URI"
 DEFAULT_WEB3_PROVIDER = "ws://127.0.0.1:8545"
 DEFAULT_DB_URI = "http://127.0.0.1:2379"
 DOTENV_FILENAME = ".env"
@@ -23,15 +23,20 @@ class EnvVar:
 
 class EnvConfig:
     def __init__(self):
-        self.WEB3_PROVIDER_URL = os.getenv(ENV_WEB3_PROVIDER)
-        self.DB_URI = os.getenv(ENV_STR_DB_URI)
+        w3url = os.getenv(ENV_WEB3_PROVIDER)
+        self.WEB3_PROVIDER_URL = w3url if w3url else DEFAULT_WEB3_PROVIDER
+
+        db_uri = os.getenv(ENV_DB_URI)
+        self.DB_URI = db_uri if db_uri else DEFAULT_DB_URI
 
     @classmethod
     def set_environment(
         cls, w3url: Optional[str] = None, db_uri: Optional[str] = None
     ) -> None:
-        os.environ[ENV_WEB3_PROVIDER] = w3url if w3url else DEFAULT_WEB3_PROVIDER
-        os.environ[ENV_STR_DB_URI] = db_uri if db_uri else DEFAULT_DB_URI
+        if w3url:
+            os.environ[ENV_WEB3_PROVIDER] = w3url
+        if db_uri:
+            os.environ[ENV_DB_URI] = db_uri
 
     @classmethod
     def set_defaults(
@@ -41,7 +46,7 @@ class EnvConfig:
         if w3url:
             env_vars.append(EnvVar(ENV_WEB3_PROVIDER, w3url))
         if db_uri:
-            env_vars.append(EnvVar(ENV_STR_DB_URI, db_uri))
+            env_vars.append(EnvVar(ENV_DB_URI, db_uri))
         if len(env_vars) > 0:
             _put_in_env_file(env_vars)
 
